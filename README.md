@@ -20,17 +20,19 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
+Points of consideration
 
-To learn more about Next.js, take a look at the following resources:
+VARIABLES AND PROXY
+Proxying was for dev but if this was a production project it would probably have endpoints on different URLs or ports, that could then be set with environment variables.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+TESTING
+Due to time contrains i chose not to write unit test. If i did i would have used jest and react testing library adding the different cases for the useFetch hook for example and the error message. If there was a larger set of components then i with uses storybook with visual tests with cypress along with using cypress to test the individual pages.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+SECURITY
+The access token would take some discussion for security. Its sensitive information so need to consider XSS or cross site request forgery. I stored it in local storage which doesnt have an expiration but an alternative could be for the JWT token to be split and backend to be able to re-construct on request. Also i presume on production everything is using SSH.
 
-## Deploy on Vercel
+USEFETCH
+ There are some requests that run when the component mounts and others which are triggered by user interaction. My thinking was that the logic is similar to rather that duplicate code i created useFetch that can be used on mount and can be triggered by the user.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+ In projection i would expect that this would run the suite of tests (jest and cypress), tslint, prettier, and snyk for security and something for code quality and complexity.
+ 
