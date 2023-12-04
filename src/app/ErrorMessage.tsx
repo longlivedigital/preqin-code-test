@@ -6,7 +6,7 @@ export const ErrorMessage = ({
   message,
 }: {
   title: string;
-  message: string;
+  message?: string;
 }) => {
   return (
     <Flex alignContent="center" justifyContent="center">

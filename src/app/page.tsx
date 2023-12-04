@@ -8,14 +8,19 @@ import ls from "local-storage";
 
 import { ErrorMessage } from "./ErrorMessage";
 import { Method } from "./types/Method";
+import useFetch from "./utils/useFetch";
 
 export default function BasePage() {
   const [userName, setUserName] = useState("dummydatafeeds@preqin.com");
   const [apiKey, setAPIKey] = useState("8f0bc69bc2a643f8bb8034a15081962e");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<AxiosError | null>(null);
   const [accessToken, setAccessToken] = useState("");
 
+  const { data, loading, error, fetchData } = useFetch({
+    method: Method.POST,
+    autoFetch: false,
+  });
+
+  // Check on load if access token exists
   useEffect(() => {
     const at = ls("accessToken");
     if (typeof at === "string") {
@@ -23,29 +28,23 @@ export default function BasePage() {
     }
   }, []);
 
+  // Set access token when user clicks button and data is loaded
+  useEffect(() => {
+    if (data?.access_token) {
+      ls("accessToken", data.access_token);
+      setAccessToken(data.access_token);
+    }
+  }, [data]);
+
   const onClickAuth = () => {
-    setLoading(true);
     const formData = new FormData();
     formData.append("userName", userName);
     formData.append("apiKey", apiKey);
 
-    axios({
-      method: Method.POST,
+    fetchData({
       url: "/connect/token",
-      data: formData,
-    })
-      .then((res: any) => {
-        const { access_token } = res.data;
-        ls("accessToken", access_token);
-        setAccessToken(access_token);
-      })
-      .catch((err: any) => {
-        console.error(err);
-        setError(err);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      body: formData,
+    });
   };
 
   return (
