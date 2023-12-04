@@ -1,95 +1,87 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
 
-export default function Home() {
+import axios, { AxiosError } from "axios";
+import { Box, Button, Flex, Input, Link, Stack } from "@chakra-ui/react";
+import NextLink from "next/link";
+import { useEffect, useState } from "react";
+import ls from "local-storage";
+
+import { ErrorMessage } from "./ErrorMessage";
+import { Method } from "./types/Method";
+
+export default function BasePage() {
+  const [userName, setUserName] = useState("dummydatafeeds@preqin.com");
+  const [apiKey, setAPIKey] = useState("8f0bc69bc2a643f8bb8034a15081962e");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<AxiosError | null>(null);
+  const [accessToken, setAccessToken] = useState("");
+
+  useEffect(() => {
+    const at = ls("accessToken");
+    if (typeof at === "string") {
+      setAccessToken(at);
+    }
+  }, []);
+
+  const onClickAuth = () => {
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("userName", userName);
+    formData.append("apiKey", apiKey);
+
+    axios({
+      method: Method.POST,
+      url: "/connect/token",
+      data: formData,
+    })
+      .then((res: any) => {
+        const { access_token } = res.data;
+        ls("accessToken", access_token);
+        setAccessToken(access_token);
+      })
+      .catch((err: any) => {
+        console.error(err);
+        setError(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    <Flex alignContent="center" justifyContent="center">
+      <Stack background="gray.100" padding="10px">
+        <Input
+          background="white"
+          placeholder="Username"
+          value={userName}
+          onChange={(e) => setUserName(e.currentTarget.value)}
         />
-      </div>
+        <Input
+          background="white"
+          placeholder="API Key"
+          value={apiKey}
+          onChange={(e) => setAPIKey(e.currentTarget.value)}
+        />
+        <Button colorScheme="blue" onClick={onClickAuth} isLoading={loading}>
+          Set access token
+        </Button>
 
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
+        {error && (
+          <ErrorMessage
+            title="There was a problem getting access token"
+            message={error.message}
+          />
+        )}
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+        {accessToken && (
+          <Box padding="20px 0">
+            <Link as={NextLink} colorScheme="blue" href="/investors">
+              See investors
+            </Link>
+          </Box>
+        )}
+      </Stack>
+    </Flex>
+  );
 }
